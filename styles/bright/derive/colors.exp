@@ -1,0 +1,250 @@
+// Every color in the style resolves here, and the halo widths that follow from those
+// colors. Layers read this file and nothing else about color.
+//
+// Base tokens arrive from tokens.exp with the three global modifiers already applied, so
+// every derivation below runs on the modified values and the contrast floors close over the
+// result. The raw color parameters are not imported here.
+
+tokens = import "./tokens.exp"
+detail = import "../params/light/detail.json"
+
+canvasHue = tokens.canvas.h
+canvasSaturation = tokens.canvas.s
+canvasLightness = tokens.canvas.l
+
+roadContrast = detail.roadContrast.value
+casingContrast = detail.casingContrast.value
+textContrast = detail.textContrast.value
+haloAssist = detail.haloAssist.value
+
+canvas = std.hsl(canvasHue, canvasSaturation, canvasLightness)
+
+// One test decides which side of the canvas every text color takes, so the text ramp never
+// splits across it. Carrying halos use std.colorContrast instead, which weighs relative
+// luminance and has a concrete text color to weigh.
+canvasIsLight = canvasLightness >= 50
+
+// The warm neutral family keeps the canvas hue, steps its lightness down, and takes a
+// share of its saturation.
+landTintSaturation = canvasSaturation * 53 / 100
+landTintLightness = max(0, canvasLightness - 6)
+
+labelHue = tokens.label.h
+labelSaturation = tokens.label.s
+
+// Text steps away from the canvas toward the side that contrasts with it, so one distance
+// reads on a light canvas and on a dark one. Text pinned to a parameter mirrors across mid
+// lightness when the canvas crosses, which keeps both its distance from the canvas and its
+// place in the ramp.
+strongLightness = when { canvasIsLight -> 0, true -> 100 }
+secondaryLightness = when {
+  canvasIsLight -> max(0, canvasLightness - textContrast),
+  true -> min(100, canvasLightness + textContrast)
+}
+labelLightness = when {
+  canvasIsLight -> tokens.label.l,
+  true -> 100 - tokens.label.l
+}
+transitLightness = when {
+  canvasIsLight -> tokens.transitLabel.l,
+  true -> 100 - tokens.transitLabel.l
+}
+pathLabelLightness = when {
+  canvasIsLight -> max(0, canvasLightness - 34),
+  true -> min(100, canvasLightness + 34)
+}
+
+// A label that names one feature sits on that feature, so it mirrors across the feature's
+// mid lightness rather than the canvas's. Water labels sit on water. The global lightness
+// modifier moves the water with the rest of the palette, so the water under a lake name
+// crosses the middle and the name crosses with it.
+waterBodyIsLight = tokens.waterFill.l >= 50
+waterwayIsLight = tokens.water.l >= 50
+accentLightness = when {
+  waterBodyIsLight -> tokens.accent.l,
+  true -> 100 - tokens.accent.l
+}
+waterwayLabelLightness = when {
+  waterwayIsLight -> tokens.waterwayLabel.l,
+  true -> 100 - tokens.waterwayLabel.l
+}
+
+label = std.hsl(labelHue, labelSaturation, labelLightness)
+labelStrong = std.hsl(labelHue, labelSaturation, strongLightness)
+labelSecondary = std.hsl(labelHue, labelSaturation, secondaryLightness)
+transitLabel = std.hsl(
+  tokens.transitLabel.h,
+  tokens.transitLabel.s,
+  transitLightness
+)
+
+// A halo does one of two jobs, and the job decides its color, alpha, and width.
+//
+// It CARRIES when the text cannot clear its background on its own. Legibility is at risk,
+// so it takes maximum contrast against that text through std.colorContrast, stays opaque,
+// and widens with the burden below.
+//
+// It LIFTS when the text already clears its background and the halo only has to hold back
+// the clutter the label crosses. Maximum contrast is too blunt here: it would ring a label
+// that reads perfectly well in a hard black or white outline. A lifting halo instead floods
+// the immediate surround back toward the ground the label sits on, and softens to
+// haloLiftAlpha so what shows through stays the map and not the outline.
+//
+// A lifting halo therefore reads the GROUND, not the text. Water labels lift, and their
+// ground is the water, not the canvas: the fill under a lake name and the line under a river
+// name. Both hold their place against the canvas at every canvas setting, and both cross mid
+// lightness only when the global lightness modifier carries the whole palette across, which
+// is the same crossing their text takes above. Reading the text's own lightness here is the
+// wrong input, and it is the whole defect: waterwayLabel is a light blue at l 68, so a halo
+// taking the pole opposite its text flips to black while the map is still bright.
+waterBodyHaloLightness = when { waterBodyIsLight -> 100, true -> 0 }
+waterwayHaloLightness = when { waterwayIsLight -> 100, true -> 0 }
+haloLiftAlpha = detail.haloLiftAlpha.value
+
+// Burden runs from 0, where the text already clears the canvas by the text contrast target,
+// to 1, where it sits flat against it. Path labels sit on their own feature, so their burden
+// never moves and they keep Bright's width.
+labelLift = max(canvasLightness - labelLightness, labelLightness - canvasLightness)
+strongLift = max(canvasLightness - strongLightness, strongLightness - canvasLightness)
+secondaryLift = max(canvasLightness - secondaryLightness, secondaryLightness - canvasLightness)
+transitLift = max(canvasLightness - transitLightness, transitLightness - canvasLightness)
+
+labelHaloWidth = 1 + max(0, textContrast - labelLift) / textContrast * haloAssist
+strongHaloWidth = 1 + max(0, textContrast - strongLift) / textContrast * haloAssist
+secondaryHaloWidth = 1 + max(0, textContrast - secondaryLift) / textContrast * haloAssist
+transitHaloWidth = 1 + max(0, textContrast - transitLift) / textContrast * haloAssist
+
+water = std.hsl(tokens.water.h, tokens.water.s, tokens.water.l)
+vegetation = std.hsl(tokens.vegetation.h, tokens.vegetation.s, tokens.vegetation.l)
+road = std.hsl(tokens.road.h, tokens.road.s, tokens.road.l)
+motorway = std.hsl(tokens.motorway.h, tokens.motorway.s, tokens.motorway.l)
+boundary = std.hsl(tokens.boundary.h, tokens.boundary.s, tokens.boundary.l)
+
+// Casings sit below their fill in lightness, shifted toward red and muted. The shift crosses
+// zero once the motorway token rotates into the first six degrees of the turn.
+casingHue = when { tokens.motorway.h < 6 -> tokens.motorway.h + 354, true -> tokens.motorway.h - 6 }
+casingSaturation = tokens.motorway.s * 72 / 100
+casingLightness = max(0, tokens.motorway.l - casingContrast)
+
+// Tunnels lighten their surface road by a fixed share.
+tunnelLift = 7
+
+{
+  "canvas": canvas,
+  "landTint": std.hsla(canvasHue, landTintSaturation, landTintLightness, 0.4),
+  "landTintFaint": std.hsla(canvasHue, landTintSaturation, landTintLightness, 0.2),
+  "landTintClear": std.hsla(canvasHue, landTintSaturation, landTintLightness, 0),
+
+  "building": std.hsl(tokens.building.h, tokens.building.s, tokens.building.l),
+  "buildingOutline": std.hsl(canvasHue, canvasSaturation * 31 / 100, max(0, canvasLightness - 10)),
+
+  "hospital": std.hsl(tokens.hospital.h, tokens.hospital.s, tokens.hospital.l),
+  "school": std.hsl(tokens.school.h, tokens.school.s, tokens.school.l),
+  "cemetery": std.hsl(tokens.cemetery.h, tokens.cemetery.s, tokens.cemetery.l),
+  "commercial": std.hsla(
+    tokens.commercial.h,
+    tokens.commercial.s,
+    tokens.commercial.l,
+    tokens.commercial.a
+  ),
+  "industrial": std.hsla(
+    tokens.industrial.h,
+    tokens.industrial.s,
+    tokens.industrial.l,
+    tokens.industrial.a
+  ),
+  "ice": std.hsl(tokens.ice.h, tokens.ice.s, tokens.ice.l),
+  "sand": std.hsl(tokens.sand.h, tokens.sand.s, tokens.sand.l),
+
+  "vegetation": vegetation,
+  // Woodland is a much darker, greener park.
+  "wood": std.adjustHue(std.darken(vegetation, 45), 10),
+  "woodOutline": std.hsla(labelHue, labelSaturation, 0, 0.03),
+
+  "water": water,
+  "waterFill": std.hsl(tokens.waterFill.h, tokens.waterFill.s, tokens.waterFill.l),
+  // Intermittent water is lighter than water.
+  "waterIntermittent": std.lighten(water, 9),
+
+  "road": road,
+  "roadTunnel": std.lighten(road, tunnelLift),
+  "motorway": motorway,
+  "motorwayTunnel": std.lighten(motorway, tunnelLift),
+  "motorwayLinkTunnel": std.desaturate(std.lighten(motorway, 2), 20),
+  "majorCasing": std.hsl(casingHue, casingSaturation, casingLightness),
+  "majorCasingTunnelLink": std.darken(
+    std.desaturate(std.hsl(casingHue, casingSaturation, casingLightness), 35),
+    14
+  ),
+  "minorCasing": std.hsl(canvasHue, canvasSaturation * 14 / 100, max(0, canvasLightness - 16)),
+  // Minor roads lift off the canvas by the road contrast target.
+  "minorSurface": std.hsl(canvasHue, canvasSaturation, min(100, canvasLightness + roadContrast)),
+  "path": std.hsl(canvasHue, canvasSaturation * 69 / 100, max(0, canvasLightness - 23)),
+  "pathLabel": std.hsl(canvasHue, canvasSaturation * 64 / 100, pathLabelLightness),
+  "highwayArea": std.hsla(
+    tokens.highwayArea.h,
+    tokens.highwayArea.s,
+    tokens.highwayArea.l,
+    tokens.highwayArea.a
+  ),
+
+  "railway": std.hsl(tokens.railway.h, tokens.railway.s, tokens.railway.l),
+  "railwayMinor": std.hsla(
+    tokens.railway.h,
+    tokens.railway.s,
+    tokens.railway.l,
+    0.77
+  ),
+  "railwayMinorHatching": std.hsla(
+    tokens.railway.h,
+    tokens.railway.s,
+    tokens.railway.l,
+    0.68
+  ),
+  "cablecar": std.hsl(tokens.cablecar.h, tokens.cablecar.s, tokens.cablecar.l),
+  "ferry": std.hsl(tokens.ferry.h, tokens.ferry.s, tokens.ferry.l),
+
+  "aerowayCasing": std.hsl(
+    tokens.aerowayCasing.h,
+    tokens.aerowayCasing.s,
+    tokens.aerowayCasing.l
+  ),
+  "aerowayFill": std.hsl(
+    tokens.aerowayFill.h,
+    tokens.aerowayFill.s,
+    tokens.aerowayFill.l
+  ),
+
+  "boundary": boundary,
+  // Region boundaries drop the boundary hue and lighten.
+  "boundaryRegion": std.lighten(std.desaturate(boundary, 100), 6),
+
+  "label": label,
+  // Country, city, town, and village labels take the side of the canvas that contrasts.
+  "labelStrong": labelStrong,
+  // Secondary text sits the text contrast target away from the canvas.
+  "labelSecondary": labelSecondary,
+  "accent": std.hsl(tokens.accent.h, tokens.accent.s, accentLightness),
+  "transitLabel": transitLabel,
+  "waterwayLabel": std.hsl(
+    tokens.waterwayLabel.h,
+    tokens.waterwayLabel.s,
+    waterwayLabelLightness
+  ),
+
+  // A carrying halo takes maximum contrast against the text it surrounds, so it inverts as
+  // its text inverts.
+  "halo": std.colorContrast(label),
+  "haloStrong": std.colorContrast(labelStrong),
+  "haloSecondary": std.colorContrast(labelSecondary),
+  "haloTransit": std.colorContrast(transitLabel),
+  // A lifting halo takes the side of the ground beneath it, softened.
+  "haloWaterBody": std.hsla(labelHue, labelSaturation, waterBodyHaloLightness, haloLiftAlpha),
+  "haloWaterway": std.hsla(labelHue, labelSaturation, waterwayHaloLightness, haloLiftAlpha),
+
+  // Halo width grows with the burden a carrying halo bears.
+  "haloWidth": labelHaloWidth,
+  "haloWidthStrong": strongHaloWidth,
+  "haloWidthSecondary": secondaryHaloWidth,
+  "haloWidthTransit": transitHaloWidth
+}

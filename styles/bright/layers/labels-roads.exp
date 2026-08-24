@@ -1,0 +1,144 @@
+// Road names and highway shields.
+
+colors = import "../derive/colors.exp"
+sizes = import "../derive/sizes.exp"
+flags = import "../derive/visibility.exp"
+text = import "../derive/label-text.json"
+
+roadLabel = {
+  "type": "symbol",
+  "source": "openmaptiles",
+  "source-layer": "transportation_name",
+  "layout": {
+    "symbol-placement": "line",
+    "text-field": text.inline,
+    "text-font": ["Noto Sans Regular"],
+    "text-rotation-alignment": "map",
+    "text-size": interpolate(["linear"], zoom(), 13, sizes.roadLow, 14, sizes.road)
+  },
+  "paint": {
+    "text-color": colors.labelSecondary,
+    "text-halo-blur": 0.5,
+    "text-halo-color": colors.haloSecondary,
+    "text-halo-width": colors.haloWidthSecondary
+  }
+}
+
+shieldLabel = {
+  "type": "symbol",
+  "source": "openmaptiles",
+  "source-layer": "transportation_name",
+  "layout": {
+    "icon-rotation-alignment": "viewport",
+    "icon-size": 1,
+    "symbol-spacing": 200,
+    "text-field": ["to-string", ["get", "ref"]],
+    "text-font": ["Noto Sans Regular"],
+    "text-rotation-alignment": "viewport",
+    "text-size": sizes.shield
+  }
+}
+
+shortRef = ["<=", ["get", "ref_length"], 6]
+lineGeometry = ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false]
+networkIcon = ["concat", ["get", "network"], "_", ["get", "ref_length"]]
+
+names = [
+  {
+    ...roadLabel,
+    "id": "highway-name-path",
+    "minzoom": 15.5,
+    "filter": ["==", ["get", "class"], "path"],
+    "paint": {
+      "text-color": colors.pathLabel,
+      "text-halo-color": colors.canvas,
+      "text-halo-width": 0.5
+    }
+  },
+  {
+    ...roadLabel,
+    "id": "highway-name-minor",
+    "minzoom": 15,
+    "filter": [
+      "all",
+      lineGeometry,
+      ["match", ["get", "class"], ["minor", "service", "track"], true, false]
+    ]
+  },
+  {
+    ...roadLabel,
+    "id": "highway-name-major",
+    "minzoom": 12.2,
+    "filter": [
+      "match",
+      ["get", "class"],
+      ["primary", "secondary", "tertiary", "trunk"],
+      true,
+      false
+    ]
+  }
+]
+
+shields = [
+  {
+    ...shieldLabel,
+    "id": "highway-shield-non-us",
+    "minzoom": 8,
+    "filter": [
+      "all",
+      shortRef,
+      lineGeometry,
+      [
+        "match",
+        ["get", "network"],
+        ["us-highway", "us-interstate", "us-state"],
+        false,
+        true
+      ]
+    ],
+    "layout": {
+      ...shieldLabel.layout,
+      "icon-image": ["concat", "road_", ["get", "ref_length"]],
+      "symbol-placement": ["step", ["zoom"], "point", 11, "line"]
+    }
+  },
+  {
+    ...shieldLabel,
+    "id": "highway-shield-us-interstate",
+    "minzoom": 7,
+    "filter": [
+      "all",
+      shortRef,
+      lineGeometry,
+      ["match", ["get", "network"], ["us-interstate"], true, false]
+    ],
+    "layout": {
+      ...shieldLabel.layout,
+      "icon-image": networkIcon,
+      "symbol-placement": ["step", ["zoom"], "point", 7, "line", 8, "line"]
+    }
+  },
+  {
+    ...shieldLabel,
+    "id": "road_shield_us",
+    "minzoom": 9,
+    "filter": [
+      "all",
+      shortRef,
+      lineGeometry,
+      ["match", ["get", "network"], ["us-highway", "us-state"], true, false]
+    ],
+    "layout": {
+      ...shieldLabel.layout,
+      "icon-image": networkIcon,
+      "symbol-placement": ["step", ["zoom"], "point", 11, "line"]
+    }
+  }
+]
+
+visible = flags.roadLabels
+
+{
+  "names": when { visible -> names, true -> [] },
+  "shields": when { visible -> shields, true -> [] }
+}

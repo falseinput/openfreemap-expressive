@@ -1,0 +1,109 @@
+// Point of interest icons and labels, transit stops, and airports.
+
+colors = import "../derive/colors.exp"
+sizes = import "../derive/sizes.exp"
+flags = import "../derive/visibility.exp"
+text = import "../derive/label-text.json"
+
+poi = {
+  "type": "symbol",
+  "source": "openmaptiles",
+  "source-layer": "poi",
+  "layout": {
+    "icon-image": [
+      "match",
+      ["get", "subclass"],
+      ["florist", "furniture"],
+      ["get", "subclass"],
+      ["get", "class"]
+    ],
+    "text-anchor": "top",
+    "text-field": text.stacked,
+    "text-font": ["Noto Sans Italic"],
+    "text-max-width": 9,
+    "text-offset": [0, 0.6],
+    "text-size": sizes.poi
+  },
+  "paint": {
+    "text-color": colors.labelSecondary,
+    "text-halo-blur": 0.5,
+    "text-halo-color": colors.haloSecondary,
+    "text-halo-width": colors.haloWidthSecondary
+  }
+}
+
+pointGeometry = ["match", ["geometry-type"], ["MultiPoint", "Point"], true, false]
+
+points = [
+  {
+    ...poi,
+    "id": "poi_r20",
+    "minzoom": 17,
+    "filter": ["all", pointGeometry, [">=", ["get", "rank"], 20]]
+  },
+  {
+    ...poi,
+    "id": "poi_r7",
+    "minzoom": 16,
+    "filter": [
+      "all",
+      pointGeometry,
+      [">=", ["get", "rank"], 7],
+      ["<", ["get", "rank"], 20]
+    ]
+  },
+  {
+    ...poi,
+    "id": "poi_r1",
+    "minzoom": 15,
+    "filter": [
+      "all",
+      pointGeometry,
+      [">=", ["get", "rank"], 1],
+      ["<", ["get", "rank"], 7]
+    ]
+  },
+  {
+    ...poi,
+    "id": "poi_transit",
+    "filter": ["match", ["get", "class"], ["airport", "bus", "rail"], true, false],
+    "layout": {
+      ...poi.layout,
+      "icon-image": ["to-string", ["get", "class"]],
+      "icon-size": 0.7,
+      "text-anchor": "left",
+      "text-offset": [0.9, 0]
+    },
+    "paint": {
+      ...poi.paint,
+      "text-color": colors.transitLabel,
+      "text-halo-color": colors.haloTransit,
+      "text-halo-width": colors.haloWidthTransit
+    }
+  }
+]
+
+airports = [
+  {
+    ...poi,
+    "id": "airport",
+    "source-layer": "aerodrome_label",
+    "minzoom": 10,
+    "filter": ["all", ["has", "iata"]],
+    "layout": {
+      ...poi.layout,
+      "icon-image": "airport_11",
+      "icon-size": 1,
+      "text-font": ["Noto Sans Regular"],
+      "text-optional": true,
+      "text-padding": 2
+    }
+  }
+]
+
+visible = flags.pois
+
+{
+  "points": when { visible -> points, true -> [] },
+  "airports": when { visible -> airports, true -> [] }
+}

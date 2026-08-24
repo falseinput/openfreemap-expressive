@@ -1,0 +1,59 @@
+// Label sizes and the two scale multipliers. Each label class holds its size at the top of
+// its zoom range, and the smaller stops keep Bright's ratio to it. Every size then passes
+// through the label scale, so one parameter resizes all text and the ratios survive.
+
+core = import "../params/light/core.json"
+detail = import "../params/light/detail.json"
+
+labelScale = core.labelScale.value
+
+waterway = detail.labelSizeWaterway.value
+waterBody = detail.labelSizeWaterBody.value
+poi = detail.labelSizePoi.value
+shield = detail.labelSizeShield.value
+roadName = detail.labelSizeRoad.value
+placeOther = detail.labelSizePlaceOther.value
+village = detail.labelSizeVillage.value
+town = detail.labelSizeTown.value
+state = detail.labelSizeState.value
+city = detail.labelSizeCity.value
+capital = detail.labelSizeCapital.value
+country = detail.labelSizeCountry.value
+
+{
+  "roadScale": core.roadScale.value,
+  "labelScale": labelScale,
+
+  "waterway": waterway * labelScale,
+  "waterBody": waterBody * labelScale,
+  "waterBodyLow": waterBody * 10 / 14 * labelScale,
+
+  "poi": poi * labelScale,
+  "shield": shield * labelScale,
+
+  "road": roadName * labelScale,
+  "roadLow": roadName * 12 / 13 * labelScale,
+
+  "placeOther": placeOther * labelScale,
+  "placeOtherLow": placeOther * 9 / 10 * labelScale,
+
+  "village": village * labelScale,
+  "villageLow": village * 10 / 12 * labelScale,
+
+  "town": town * labelScale,
+  "townLow": town * 12 / 14 * labelScale,
+
+  "state": state * labelScale,
+  "stateLow": state * 10 / 14 * labelScale,
+
+  "city": city * labelScale,
+  "cityMid": city * 13 / 18 * labelScale,
+  "cityLow": city * 11 / 18 * labelScale,
+
+  "capital": capital * labelScale,
+  "capitalMid": capital * 14 / 20 * labelScale,
+  "capitalLow": capital * 12 / 20 * labelScale,
+
+  "country": country * labelScale,
+  "countryLow": country * 9 / 17 * labelScale
+}

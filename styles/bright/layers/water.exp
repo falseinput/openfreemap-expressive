@@ -1,0 +1,126 @@
+// Waterways and water bodies.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+waterwayLine = {
+  "type": "line",
+  "source": "openmaptiles",
+  "source-layer": "waterway",
+  "layout": { "line-cap": "round" },
+  "paint": { "line-color": colors.water }
+}
+
+waterBody = {
+  "type": "fill",
+  "source": "openmaptiles",
+  "source-layer": "water"
+}
+
+streamWidth = ["interpolate", ["exponential", 1.3], ["zoom"], 13, 0.5, 20, 6]
+ditchWidth = ["interpolate", ["exponential", 1.3], ["zoom"], 13, 0.5, 20, 2]
+riverWidth = ["interpolate", ["exponential", 1.2], ["zoom"], 10, 0.8, 20, 6]
+
+waterways = [
+  {
+    ...waterwayLine,
+    "id": "waterway_tunnel",
+    "minzoom": 14,
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["canal", "river", "stream"], true, false],
+      ["==", ["get", "brunnel"], "tunnel"]
+    ],
+    "paint": { ...waterwayLine.paint, "line-dasharray": [2, 4], "line-width": streamWidth }
+  },
+  {
+    ...waterwayLine,
+    "id": "waterway-other",
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["canal", "river", "stream"], false, true],
+      ["==", ["get", "intermittent"], 0]
+    ],
+    "paint": { ...waterwayLine.paint, "line-width": ditchWidth }
+  },
+  {
+    ...waterwayLine,
+    "id": "waterway-other-intermittent",
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["canal", "river", "stream"], false, true],
+      ["==", ["get", "intermittent"], 1]
+    ],
+    "paint": { ...waterwayLine.paint, "line-dasharray": [4, 3], "line-width": ditchWidth }
+  },
+  {
+    ...waterwayLine,
+    "id": "waterway-stream-canal",
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["canal", "stream"], true, false],
+      ["!=", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "intermittent"], 0]
+    ],
+    "paint": { ...waterwayLine.paint, "line-width": streamWidth }
+  },
+  {
+    ...waterwayLine,
+    "id": "waterway-stream-canal-intermittent",
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["canal", "stream"], true, false],
+      ["!=", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "intermittent"], 1]
+    ],
+    "paint": { ...waterwayLine.paint, "line-dasharray": [4, 3], "line-width": streamWidth }
+  },
+  {
+    ...waterwayLine,
+    "id": "waterway-river",
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "river"],
+      ["!=", ["get", "brunnel"], "tunnel"],
+      ["!=", ["get", "intermittent"], 1]
+    ],
+    "paint": { ...waterwayLine.paint, "line-width": riverWidth }
+  },
+  {
+    ...waterwayLine,
+    "id": "waterway-river-intermittent",
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "river"],
+      ["!=", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "intermittent"], 1]
+    ],
+    "paint": { ...waterwayLine.paint, "line-dasharray": [3, 2.5], "line-width": riverWidth }
+  }
+]
+
+bodies = [
+  {
+    ...waterBody,
+    "id": "water",
+    "filter": [
+      "all",
+      ["!=", ["get", "intermittent"], 1],
+      ["!=", ["get", "brunnel"], "tunnel"]
+    ],
+    "paint": { "fill-color": colors.waterFill }
+  },
+  {
+    ...waterBody,
+    "id": "water-intermittent",
+    "filter": ["==", ["get", "intermittent"], 1],
+    "paint": { "fill-color": colors.waterIntermittent, "fill-opacity": 0.7 }
+  }
+]
+
+visible = flags.water
+
+{
+  "waterways": when { visible -> waterways, true -> [] },
+  "bodies": when { visible -> bodies, true -> [] }
+}

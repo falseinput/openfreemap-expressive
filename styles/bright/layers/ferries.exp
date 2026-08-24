@@ -1,0 +1,26 @@
+// Ferry routes.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+routes = [
+  {
+    "id": "ferry",
+    "type": "line",
+    "source": "openmaptiles",
+    "source-layer": "transportation",
+    "filter": ["match", ["get", "class"], ["ferry"], true, false],
+    "layout": { "line-join": "round" },
+    "paint": {
+      "line-color": colors.ferry,
+      "line-dasharray": [2, 2],
+      "line-width": 1.1
+    }
+  }
+]
+
+visible = flags.ferries
+
+{
+  "routes": when { visible -> routes, true -> [] }
+}

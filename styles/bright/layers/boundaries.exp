@@ -1,0 +1,68 @@
+// Country and region boundaries.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+boundary = {
+  "type": "line",
+  "source": "openmaptiles",
+  "source-layer": "boundary"
+}
+
+countryWidth = ["interpolate", ["linear"], ["zoom"], 3, 1, 5, 1.2, 12, 3]
+
+country = { ...boundary, "paint": { "line-color": colors.boundary, "line-width": countryWidth } }
+
+admin = [
+  {
+    ...boundary,
+    "id": "boundary_3",
+    "minzoom": 5,
+    "filter": [
+      "all",
+      ["==", ["typeof", ["get", "admin_level"]], "number"],
+      [">=", ["get", "admin_level"], 3],
+      ["<=", ["get", "admin_level"], 6],
+      ["!=", ["get", "maritime"], 1],
+      ["!=", ["get", "disputed"], 1],
+      ["!", ["has", "claimed_by"]]
+    ],
+    "paint": {
+      "line-color": colors.boundaryRegion,
+      "line-dasharray": [1, 1],
+      "line-width": ["interpolate", ["linear", 1], ["zoom"], 7, 1, 11, 2]
+    }
+  },
+  {
+    ...country,
+    "id": "boundary_2",
+    "filter": [
+      "all",
+      ["==", ["get", "admin_level"], 2],
+      ["!=", ["get", "maritime"], 1],
+      ["!=", ["get", "disputed"], 1],
+      ["!", ["has", "claimed_by"]]
+    ],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": {
+      ...country.paint,
+      "line-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.4, 4, 1]
+    }
+  },
+  {
+    ...country,
+    "id": "boundary_disputed",
+    "filter": [
+      "all",
+      ["!=", ["get", "maritime"], 1],
+      ["==", ["get", "disputed"], 1]
+    ],
+    "paint": { ...country.paint, "line-dasharray": [1, 2] }
+  }
+]
+
+visible = flags.boundaries
+
+{
+  "admin": when { visible -> admin, true -> [] }
+}

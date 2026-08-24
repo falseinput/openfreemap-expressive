@@ -1,0 +1,127 @@
+{
+  "paletteHue": {
+    "title": "Palette hue",
+    "description": "Rotates every color in the palette by this many degrees, land, water, roads, and text alike, so the whole map turns together and the hue relationships between families hold. Wraps at 360.",
+    "value": 0,
+    "min": 0,
+    "max": 360
+  },
+  "paletteSaturation": {
+    "title": "Palette saturation",
+    "description": "Multiplies the saturation of every color in the palette, so the whole map gains or loses color together. A multiplier holds a neutral color neutral, and 0 takes the map to greyscale.",
+    "value": 1,
+    "min": 0,
+    "max": 2
+  },
+  "paletteLightness": {
+    "title": "Palette lightness",
+    "description": "Adds this many points to the lightness of every color in the palette, so the whole map lightens or darkens together and the steps between tones hold. The light palette starts near the top of the scale, so most of the travel runs downward: -70 reaches a dark map.",
+    "value": 0,
+    "min": -70,
+    "max": 10
+  },
+  "canvas": {
+    "title": "Canvas",
+    "description": "Base color of the land surface. The warm neutral family derives from it: land tints, building outlines, minor road casings, paths, and path labels.",
+    "value": {
+      "h": 30,
+      "s": 36,
+      "l": 96
+    }
+  },
+  "water": {
+    "title": "Water",
+    "description": "Color of rivers, streams, and canals. Intermittent water derives from it.",
+    "value": {
+      "h": 210,
+      "s": 73,
+      "l": 78
+    }
+  },
+  "vegetation": {
+    "title": "Vegetation",
+    "description": "Color of parks and grass. Woodland derives from it.",
+    "value": {
+      "h": 90,
+      "s": 41,
+      "l": 85
+    }
+  },
+  "road": {
+    "title": "Road",
+    "description": "Fill color of trunk, primary, secondary, and tertiary roads. Their tunnel fills derive from it.",
+    "value": {
+      "h": 48,
+      "s": 100,
+      "l": 83
+    }
+  },
+  "motorway": {
+    "title": "Motorway",
+    "description": "Fill color of motorways and motorway links. Every major road casing derives from it.",
+    "value": {
+      "h": 34,
+      "s": 100,
+      "l": 77
+    }
+  },
+  "building": {
+    "title": "Building",
+    "description": "Fill color of building footprints.",
+    "value": {
+      "h": 30,
+      "s": 38,
+      "l": 92
+    }
+  },
+  "boundary": {
+    "title": "Boundary",
+    "description": "Color of country boundaries. Region boundaries derive from it.",
+    "value": {
+      "h": 248,
+      "s": 7,
+      "l": 66
+    }
+  },
+  "label": {
+    "title": "Label",
+    "description": "Color of place labels below city rank. Halos take maximum contrast against it.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 20
+    }
+  },
+  "accent": {
+    "title": "Accent",
+    "description": "Color of water body labels.",
+    "value": {
+      "h": 222,
+      "s": 33,
+      "l": 43
+    }
+  },
+  "sand": {
+    "title": "Sand",
+    "description": "Color of sand and beaches.",
+    "value": {
+      "h": 53,
+      "s": 74,
+      "l": 85
+    }
+  },
+  "roadScale": {
+    "title": "Road scale",
+    "description": "Multiplies every road width, motorways and every other class alike, so the whole network thickens or thins together while the relative widths between classes hold. Raise it for thicker roads at the same zoom.",
+    "value": 1,
+    "min": 0.25,
+    "max": 3
+  },
+  "labelScale": {
+    "title": "Label scale",
+    "description": "Multiplies every label text size, from country names down to highway shields, so all text grows or shrinks together while the relative sizes between classes hold. Raise it for larger text at the same zoom.",
+    "value": 1,
+    "min": 0.5,
+    "max": 2
+  }
+}

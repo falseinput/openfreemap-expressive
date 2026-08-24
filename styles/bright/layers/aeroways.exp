@@ -1,0 +1,90 @@
+// Runways, taxiways, and apron areas.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+aeroway = {
+  "type": "line",
+  "source": "openmaptiles",
+  "source-layer": "aeroway",
+  "layout": { "line-cap": "round", "line-join": "round" }
+}
+
+casing = { ...aeroway, "minzoom": 12, "paint": { "line-color": colors.aerowayCasing, "line-opacity": 1 } }
+surface = {
+  ...aeroway,
+  "minzoom": 4,
+  "paint": {
+    "line-color": colors.aerowayFill,
+    "line-opacity": ["interpolate", ["linear"], ["zoom"], 11, 0, 12, 1]
+  }
+}
+
+pavement = [
+  {
+    ...casing,
+    "id": "aeroway-taxiway-casing",
+    "filter": ["match", ["get", "class"], ["taxiway"], true, false],
+    "paint": {
+      ...casing.paint,
+      "line-width": ["interpolate", ["exponential", 1.5], ["zoom"], 11, 2, 17, 12]
+    }
+  },
+  {
+    ...casing,
+    "id": "aeroway-runway-casing",
+    "filter": ["match", ["get", "class"], ["runway"], true, false],
+    "paint": {
+      ...casing.paint,
+      "line-width": ["interpolate", ["exponential", 1.5], ["zoom"], 11, 5, 17, 55]
+    }
+  },
+  {
+    "id": "aeroway-area",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "aeroway",
+    "minzoom": 4,
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
+      ["match", ["get", "class"], ["runway", "taxiway"], true, false]
+    ],
+    "paint": {
+      "fill-color": colors.aerowayFill,
+      "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14, 1]
+    }
+  },
+  {
+    ...surface,
+    "id": "aeroway-taxiway",
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["taxiway"], true, false],
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false]
+    ],
+    "paint": {
+      ...surface.paint,
+      "line-width": ["interpolate", ["exponential", 1.5], ["zoom"], 11, 1, 17, 10]
+    }
+  },
+  {
+    ...surface,
+    "id": "aeroway-runway",
+    "filter": [
+      "all",
+      ["match", ["get", "class"], ["runway"], true, false],
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false]
+    ],
+    "paint": {
+      ...surface.paint,
+      "line-width": ["interpolate", ["exponential", 1.5], ["zoom"], 11, 4, 17, 50]
+    }
+  }
+]
+
+visible = flags.aeroways
+
+{
+  "pavement": when { visible -> pavement, true -> [] }
+}

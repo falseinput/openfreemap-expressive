@@ -1,0 +1,12 @@
+{
+  "name": "openfreemap-expressive",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "expc -i styles/bright/style.light.exp -o dist/style.light.json"
+  },
+  "devDependencies": {
+    "@falseinput/expressive": "^0.3.0"
+  }
+}

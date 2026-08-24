@@ -1,0 +1,822 @@
+// Roads at three elevations. Each elevation draws casings first, then fills. Every width
+// passes through the road scale.
+
+colors = import "../derive/colors.exp"
+sizes = import "../derive/sizes.exp"
+flags = import "../derive/visibility.exp"
+
+scale = sizes.roadScale
+
+road = {
+  "type": "line",
+  "source": "openmaptiles",
+  "source-layer": "transportation"
+}
+
+joinRound = { "line-join": "round" }
+capRoundJoinRound = { "line-cap": "round", "line-join": "round" }
+capButtJoinRound = { "line-cap": "butt", "line-join": "round" }
+
+tunnelDash = [0.5, 0.25]
+pathDash = [1.5, 0.75]
+
+fadeIn12 = ["interpolate", ["linear"], ["zoom"], 12, 0, 12.5, 1]
+
+// Widths shared across elevations.
+serviceTrackCasingWidth = interpolate(
+  ["exponential", 1.2], zoom(), 15, 1 * scale, 16, 4 * scale, 20, 11 * scale
+)
+linkCasingWidth = interpolate(
+  ["exponential", 1.2], zoom(), 12, 1 * scale, 13, 3 * scale, 14, 4 * scale, 20, 15 * scale
+)
+minorCasingWidth = interpolate(
+  ["exponential", 1.2], zoom(), 12, 0.5 * scale, 13, 1 * scale, 14, 4 * scale, 20, 15 * scale
+)
+secondaryTertiaryCasingWidth = interpolate(
+  ["exponential", 1.2], zoom(), 8, 1.5 * scale, 20, 17 * scale
+)
+trunkPrimaryCasingWidth = interpolate(
+  ["exponential", 1.2], zoom(), 5, 0.4 * scale, 6, 0.6 * scale, 7, 1.5 * scale, 20, 22 * scale
+)
+pathWidth = interpolate(["exponential", 1.2], zoom(), 15, 1.2 * scale, 20, 4 * scale)
+linkWidth = interpolate(
+  ["exponential", 1.2], zoom(), 12.5, 0, 13, 1.5 * scale, 14, 2.5 * scale, 20, 11.5 * scale
+)
+serviceTrackWidth = interpolate(
+  ["exponential", 1.2], zoom(), 15.5, 0, 16, 2 * scale, 20, 7.5 * scale
+)
+minorWidth = interpolate(
+  ["exponential", 1.2], zoom(), 13.5, 0, 14, 2.5 * scale, 20, 11.5 * scale
+)
+trunkPrimaryWidth = interpolate(
+  ["exponential", 1.2], zoom(), 6.5, 0, 7, 0.5 * scale, 20, 18 * scale
+)
+secondaryTertiaryWidth = interpolate(
+  ["exponential", 1.2], zoom(), 6.5, 0, 8, 0.5 * scale, 20, 13 * scale
+)
+
+tunnelLine = { ...road, "layout": joinRound }
+tunnelCasing = {
+  ...tunnelLine,
+  "paint": { "line-color": colors.majorCasing, "line-dasharray": tunnelDash }
+}
+tunnelMinorCasing = {
+  ...tunnelLine,
+  "paint": { "line-color": colors.minorCasing, "line-dasharray": tunnelDash }
+}
+tunnelRoad = { ...tunnelLine, "paint": { "line-color": colors.roadTunnel } }
+
+highwayLine = { ...road, "layout": capRoundJoinRound }
+highwayMajorCasing = {
+  ...road,
+  "layout": capButtJoinRound,
+  "paint": { "line-color": colors.majorCasing, "line-opacity": 1 }
+}
+highwayRoad = { ...highwayLine, "paint": { "line-color": colors.road } }
+
+bridgeLine = { ...road, "layout": joinRound }
+bridgeCasing = { ...bridgeLine, "paint": { "line-color": colors.majorCasing } }
+bridgeRoad = { ...bridgeLine, "paint": { "line-color": colors.road } }
+
+onewayArrow = {
+  ...road,
+  "type": "symbol",
+  "minzoom": 15,
+  "layout": {
+    "icon-image": "oneway",
+    "icon-padding": 2,
+    "icon-rotation-alignment": "map",
+    "icon-size": ["interpolate", ["linear"], ["zoom"], 15, 0.5, 19, 1],
+    "symbol-placement": "line",
+    "symbol-spacing": 75
+  },
+  "paint": { "icon-opacity": 0.5 }
+}
+
+onewayFilterClasses = [
+  "match",
+  ["get", "class"],
+  ["minor", "motorway", "primary", "secondary", "service", "tertiary", "trunk"],
+  true,
+  false
+]
+
+tunnels = [
+  {
+    ...tunnelMinorCasing,
+    "id": "tunnel-service-track-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["service", "track"], true, false]
+    ],
+    "paint": { ...tunnelMinorCasing.paint, "line-width": serviceTrackCasingWidth }
+  },
+  {
+    ...tunnelLine,
+    "id": "tunnel-motorway-link-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "motorway"],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      "line-color": colors.majorCasingTunnelLink,
+      "line-dasharray": tunnelDash,
+      "line-width": linkCasingWidth
+    }
+  },
+  {
+    ...tunnelMinorCasing,
+    "id": "tunnel-minor-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "minor"]
+    ],
+    "paint": {
+      ...tunnelMinorCasing.paint,
+      "line-opacity": fadeIn12,
+      "line-width": minorCasingWidth
+    }
+  },
+  {
+    ...tunnelCasing,
+    "id": "tunnel-link-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { ...tunnelCasing.paint, "line-opacity": 1, "line-width": linkCasingWidth }
+  },
+  {
+    ...tunnelCasing,
+    "id": "tunnel-secondary-tertiary-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["secondary", "tertiary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...tunnelCasing.paint,
+      "line-opacity": 1,
+      "line-width": secondaryTertiaryCasingWidth
+    }
+  },
+  {
+    ...tunnelLine,
+    "id": "tunnel-trunk-primary-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["primary", "trunk"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.majorCasing, "line-width": trunkPrimaryCasingWidth }
+  },
+  {
+    ...tunnelCasing,
+    "id": "tunnel-motorway-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "motorway"],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...tunnelCasing.paint, "line-width": trunkPrimaryCasingWidth }
+  },
+  {
+    ...road,
+    "id": "tunnel-path",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "path"]
+    ],
+    "paint": {
+      "line-color": colors.path,
+      "line-dasharray": pathDash,
+      "line-width": pathWidth
+    }
+  },
+  {
+    ...tunnelLine,
+    "id": "tunnel-motorway-link",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "motorway"],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.motorwayLinkTunnel, "line-width": linkWidth }
+  },
+  {
+    ...tunnelLine,
+    "id": "tunnel-service-track",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["service", "track"], true, false]
+    ],
+    "paint": { "line-color": colors.minorSurface, "line-width": serviceTrackWidth }
+  },
+  {
+    ...tunnelRoad,
+    "id": "tunnel-link",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { ...tunnelRoad.paint, "line-width": linkWidth }
+  },
+  {
+    ...tunnelLine,
+    "id": "tunnel-minor",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "minor"]
+    ],
+    "paint": {
+      "line-color": colors.minorSurface,
+      "line-opacity": 1,
+      "line-width": minorWidth
+    }
+  },
+  {
+    ...tunnelRoad,
+    "id": "tunnel-secondary-tertiary",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["secondary", "tertiary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...tunnelRoad.paint,
+      "line-width": interpolate(
+        ["exponential", 1.2], zoom(), 6.5, 0, 7, 0.5 * scale, 20, 10 * scale
+      )
+    }
+  },
+  {
+    ...tunnelRoad,
+    "id": "tunnel-trunk-primary",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["primary", "trunk"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...tunnelRoad.paint, "line-width": trunkPrimaryWidth }
+  },
+  {
+    ...tunnelLine,
+    "id": "tunnel-motorway",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "motorway"],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.motorwayTunnel, "line-width": trunkPrimaryWidth }
+  }
+]
+
+surface = [
+  {
+    "id": "road_area_pier",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
+      ["==", ["get", "class"], "pier"]
+    ],
+    "paint": { "fill-antialias": true, "fill-color": colors.canvas }
+  },
+  {
+    ...highwayLine,
+    "id": "road_pier",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["match", ["get", "class"], ["pier"], true, false]
+    ],
+    "paint": {
+      "line-color": colors.canvas,
+      "line-width": interpolate(
+        ["exponential", 1.2], zoom(), 15, 1 * scale, 17, 4 * scale
+      )
+    }
+  },
+  {
+    "id": "highway-area",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
+      ["match", ["get", "class"], ["pier"], false, true]
+    ],
+    "paint": {
+      "fill-antialias": false,
+      "fill-color": colors.highwayArea,
+      "fill-opacity": 0.9,
+      "fill-outline-color": colors.minorCasing
+    }
+  },
+  {
+    ...highwayLine,
+    "id": "highway-motorway-link-casing",
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["==", ["get", "class"], "motorway"],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      "line-color": colors.majorCasing,
+      "line-opacity": 1,
+      "line-width": linkCasingWidth
+    }
+  },
+  {
+    ...highwayLine,
+    "id": "highway-link-casing",
+    "minzoom": 13,
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      "line-color": colors.majorCasing,
+      "line-opacity": 1,
+      "line-width": linkCasingWidth
+    }
+  },
+  {
+    ...highwayLine,
+    "id": "highway-minor-casing",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["!=", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["minor", "service", "track"], true, false]
+    ],
+    "paint": {
+      "line-color": colors.minorCasing,
+      "line-opacity": fadeIn12,
+      "line-width": minorCasingWidth
+    }
+  },
+  {
+    ...highwayMajorCasing,
+    "id": "highway-secondary-tertiary-casing",
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["secondary", "tertiary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...highwayMajorCasing.paint, "line-width": secondaryTertiaryCasingWidth }
+  },
+  {
+    ...highwayMajorCasing,
+    "id": "highway-primary-casing",
+    "minzoom": 5,
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["primary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...highwayMajorCasing.paint,
+      "line-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, 1],
+      "line-width": interpolate(
+        ["exponential", 1.2], zoom(), 7, 0, 8, 0.6 * scale, 9, 1.5 * scale, 20, 22 * scale
+      )
+    }
+  },
+  {
+    ...highwayMajorCasing,
+    "id": "highway-trunk-casing",
+    "minzoom": 5,
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["trunk"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...highwayMajorCasing.paint,
+      "line-opacity": ["interpolate", ["linear"], ["zoom"], 5, 0, 6, 1],
+      "line-width": interpolate(
+        ["exponential", 1.2], zoom(), 5, 0, 6, 0.6 * scale, 7, 1.5 * scale, 20, 22 * scale
+      )
+    }
+  },
+  {
+    ...highwayMajorCasing,
+    "id": "highway-motorway-casing",
+    "minzoom": 4,
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["==", ["get", "class"], "motorway"],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...highwayMajorCasing.paint,
+      "line-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 5, 1],
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        4, 0,
+        5, 0.4 * scale,
+        6, 0.6 * scale,
+        7, 1.5 * scale,
+        20, 22 * scale
+      )
+    }
+  },
+  {
+    ...road,
+    "id": "highway-path",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["==", ["get", "class"], "path"]
+    ],
+    "paint": {
+      "line-color": colors.path,
+      "line-dasharray": pathDash,
+      "line-width": pathWidth
+    }
+  },
+  {
+    ...highwayLine,
+    "id": "highway-motorway-link",
+    "minzoom": 12,
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["==", ["get", "class"], "motorway"],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.motorway, "line-width": linkWidth }
+  },
+  {
+    ...highwayRoad,
+    "id": "highway-link",
+    "minzoom": 13,
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { ...highwayRoad.paint, "line-width": linkWidth }
+  },
+  {
+    ...highwayLine,
+    "id": "highway-minor",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["!=", ["get", "brunnel"], "tunnel"],
+      ["match", ["get", "class"], ["minor", "service", "track"], true, false]
+    ],
+    "paint": {
+      "line-color": colors.minorSurface,
+      "line-opacity": 1,
+      "line-width": minorWidth
+    }
+  },
+  {
+    ...highwayRoad,
+    "id": "highway-secondary-tertiary",
+    "filter": [
+      "all",
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["secondary", "tertiary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...highwayRoad.paint, "line-width": secondaryTertiaryWidth }
+  },
+  {
+    ...highwayRoad,
+    "id": "highway-primary",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["primary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...highwayRoad.paint,
+      "line-width": interpolate(
+        ["exponential", 1.2], zoom(), 8.5, 0, 9, 0.5 * scale, 20, 18 * scale
+      )
+    }
+  },
+  {
+    ...highwayRoad,
+    "id": "highway-trunk",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["match", ["get", "class"], ["trunk"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...highwayRoad.paint, "line-width": trunkPrimaryWidth }
+  },
+  {
+    ...highwayLine,
+    "id": "highway-motorway",
+    "minzoom": 5,
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+      ["==", ["get", "class"], "motorway"],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.motorway, "line-width": trunkPrimaryWidth }
+  }
+]
+
+bridges = [
+  {
+    ...bridgeCasing,
+    "id": "bridge-motorway-link-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["==", ["get", "class"], "motorway"],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...bridgeCasing.paint,
+      "line-opacity": 1,
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        12, 1 * scale,
+        13, 3 * scale,
+        14, 4 * scale,
+        20, 19 * scale
+      )
+    }
+  },
+  {
+    ...bridgeCasing,
+    "id": "bridge-link-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...bridgeCasing.paint,
+      "line-opacity": 1,
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        12, 1 * scale,
+        13, 3 * scale,
+        14, 4 * scale,
+        20, 19 * scale
+      )
+    }
+  },
+  {
+    ...bridgeCasing,
+    "id": "bridge-secondary-tertiary-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["secondary", "tertiary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...bridgeCasing.paint,
+      "line-opacity": 1,
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        5, 0.4 * scale,
+        7, 0.6 * scale,
+        8, 1.5 * scale,
+        20, 21 * scale
+      )
+    }
+  },
+  {
+    ...bridgeCasing,
+    "id": "bridge-trunk-primary-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["primary", "trunk"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...bridgeCasing.paint,
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        5, 0.4 * scale,
+        6, 0.6 * scale,
+        7, 1.5 * scale,
+        20, 26 * scale
+      )
+    }
+  },
+  {
+    ...bridgeCasing,
+    "id": "bridge-motorway-casing",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["==", ["get", "class"], "motorway"],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": {
+      ...bridgeCasing.paint,
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        5, 0.4 * scale,
+        6, 0.6 * scale,
+        7, 1.5 * scale,
+        20, 26 * scale
+      )
+    }
+  },
+  {
+    ...road,
+    "id": "bridge-minor-casing",
+    "layout": capButtJoinRound,
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["minor", "service", "track"], true, false]
+    ],
+    "paint": {
+      "line-color": colors.minorCasing,
+      "line-opacity": fadeIn12,
+      "line-width": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        12, 0.5 * scale,
+        13, 1 * scale,
+        14, 6 * scale,
+        20, 24 * scale
+      )
+    }
+  },
+  {
+    ...road,
+    "id": "bridge-path-casing",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["==", ["get", "brunnel"], "bridge"],
+      ["==", ["get", "class"], "path"]
+    ],
+    "paint": {
+      "line-color": colors.canvas,
+      "line-width": interpolate(
+        ["exponential", 1.2], zoom(), 15, 1.2 * scale, 20, 18 * scale
+      )
+    }
+  },
+  {
+    ...road,
+    "id": "bridge-path",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["==", ["get", "brunnel"], "bridge"],
+      ["==", ["get", "class"], "path"]
+    ],
+    "paint": {
+      "line-color": colors.path,
+      "line-dasharray": pathDash,
+      "line-width": pathWidth
+    }
+  },
+  {
+    ...bridgeLine,
+    "id": "bridge-motorway-link",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["==", ["get", "class"], "motorway"],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.motorway, "line-width": linkWidth }
+  },
+  {
+    ...bridgeRoad,
+    "id": "bridge-link",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+      ["==", ["get", "ramp"], 1]
+    ],
+    "paint": { ...bridgeRoad.paint, "line-width": linkWidth }
+  },
+  {
+    ...road,
+    "id": "bridge-minor",
+    "layout": capRoundJoinRound,
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["minor", "service", "track"], true, false]
+    ],
+    "paint": {
+      "line-color": colors.minorSurface,
+      "line-opacity": 1,
+      "line-width": minorWidth
+    }
+  },
+  {
+    ...bridgeRoad,
+    "id": "bridge-secondary-tertiary",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["secondary", "tertiary"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...bridgeRoad.paint, "line-width": secondaryTertiaryWidth }
+  },
+  {
+    ...bridgeRoad,
+    "id": "bridge-trunk-primary",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["match", ["get", "class"], ["primary", "trunk"], true, false],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { ...bridgeRoad.paint, "line-width": trunkPrimaryWidth }
+  },
+  {
+    ...bridgeLine,
+    "id": "bridge-motorway",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "bridge"],
+      ["==", ["get", "class"], "motorway"],
+      ["!=", ["get", "ramp"], 1]
+    ],
+    "paint": { "line-color": colors.motorway, "line-width": trunkPrimaryWidth }
+  }
+]
+
+oneway = [
+  {
+    ...onewayArrow,
+    "id": "road_oneway",
+    "filter": ["all", ["==", ["get", "oneway"], 1], onewayFilterClasses],
+    "layout": { ...onewayArrow.layout, "icon-rotate": 90 }
+  },
+  {
+    ...onewayArrow,
+    "id": "road_oneway_opposite",
+    "filter": ["all", ["==", ["get", "oneway"], -1], onewayFilterClasses],
+    "layout": { ...onewayArrow.layout, "icon-rotate": -90 }
+  }
+]
+
+visible = flags.roads
+
+{
+  "tunnels": when { visible -> tunnels, true -> [] },
+  "surface": when { visible -> surface, true -> [] },
+  "bridges": when { visible -> bridges, true -> [] },
+  "oneway": when { visible -> oneway, true -> [] }
+}

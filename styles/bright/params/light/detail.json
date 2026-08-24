@@ -1,0 +1,319 @@
+{
+  "hospital": {
+    "title": "Hospital",
+    "description": "Fill color of hospital grounds.",
+    "value": {
+      "h": 330,
+      "s": 100,
+      "l": 93
+    }
+  },
+  "school": {
+    "title": "School",
+    "description": "Fill color of school grounds.",
+    "value": {
+      "h": 270,
+      "s": 53,
+      "l": 94
+    }
+  },
+  "cemetery": {
+    "title": "Cemetery",
+    "description": "Fill color of cemeteries.",
+    "value": {
+      "h": 94,
+      "s": 11,
+      "l": 88
+    }
+  },
+  "commercial": {
+    "title": "Commercial land",
+    "description": "Fill color of commercial areas.",
+    "value": {
+      "h": 0,
+      "s": 60,
+      "l": 87,
+      "a": 0.23
+    }
+  },
+  "industrial": {
+    "title": "Industrial land",
+    "description": "Fill color of industrial areas, garages, and dams.",
+    "value": {
+      "h": 49,
+      "s": 100,
+      "l": 88,
+      "a": 0.34
+    }
+  },
+  "ice": {
+    "title": "Ice",
+    "description": "Fill color of glaciers and ice shelves.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 100
+    }
+  },
+  "waterFill": {
+    "title": "Water body",
+    "description": "Fill color of lakes, seas, and reservoirs. Sits apart from the waterway line color.",
+    "value": {
+      "h": 202,
+      "s": 47,
+      "l": 78
+    }
+  },
+  "ferry": {
+    "title": "Ferry",
+    "description": "Color of ferry routes.",
+    "value": {
+      "h": 199,
+      "s": 34,
+      "l": 57
+    }
+  },
+  "railway": {
+    "title": "Railway",
+    "description": "Color of railway lines and their hatching.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 73
+    }
+  },
+  "cablecar": {
+    "title": "Cable car",
+    "description": "Color of cable car lines.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 70
+    }
+  },
+  "aerowayCasing": {
+    "title": "Aeroway casing",
+    "description": "Color of runway and taxiway casings.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 60
+    }
+  },
+  "aerowayFill": {
+    "title": "Aeroway surface",
+    "description": "Color of runways, taxiways, and apron areas.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 100
+    }
+  },
+  "highwayArea": {
+    "title": "Highway area",
+    "description": "Fill color of pedestrian areas and other mapped road surfaces.",
+    "value": {
+      "h": 0,
+      "s": 0,
+      "l": 89,
+      "a": 0.56
+    }
+  },
+  "transitLabel": {
+    "title": "Transit label",
+    "description": "Text color of transit stop labels.",
+    "value": {
+      "h": 208,
+      "s": 47,
+      "l": 34
+    }
+  },
+  "waterwayLabel": {
+    "title": "Waterway label",
+    "description": "Text color of river, stream, and canal labels.",
+    "value": {
+      "h": 210,
+      "s": 73,
+      "l": 68
+    }
+  },
+  "roadContrast": {
+    "title": "Road contrast",
+    "description": "Lightness distance between minor road surfaces and the canvas. Bright sets it low, so minor roads read as a slight lift off the land.",
+    "value": 4,
+    "min": 0,
+    "max": 30
+  },
+  "casingContrast": {
+    "title": "Casing contrast",
+    "description": "Lightness distance between a major road fill and its casing.",
+    "value": 8,
+    "min": 0,
+    "max": 30
+  },
+  "textContrast": {
+    "title": "Text contrast",
+    "description": "Lightness distance between secondary text and the canvas. Secondary text covers points of interest, road names, and airports.",
+    "value": 56,
+    "min": 20,
+    "max": 80
+  },
+  "haloAssist": {
+    "title": "Halo assist",
+    "description": "Extra halo width in pixels added when a label sits flat against the canvas and its halo carries the whole separation. Scales from zero, where the text clears the canvas by the text contrast target on its own, to this value.",
+    "value": 1.5,
+    "min": 0,
+    "max": 3
+  },
+  "haloLiftAlpha": {
+    "title": "Halo lift alpha",
+    "description": "Opacity of a lifting halo, the kind that only holds back clutter around text that already reads against the feature it names. Softer than the opaque halos that carry legibility on their own.",
+    "value": 0.7,
+    "min": 0,
+    "max": 1
+  },
+  "labelSizeWaterway": {
+    "title": "Waterway label size",
+    "description": "Text size in pixels for river, stream, and canal labels.",
+    "value": 14,
+    "min": 8,
+    "max": 28
+  },
+  "labelSizeWaterBody": {
+    "title": "Water body label size",
+    "description": "Text size in pixels for lake and sea labels at high zoom.",
+    "value": 14,
+    "min": 8,
+    "max": 28
+  },
+  "labelSizePoi": {
+    "title": "Point of interest label size",
+    "description": "Text size in pixels for point of interest, transit, and airport labels.",
+    "value": 12,
+    "min": 8,
+    "max": 24
+  },
+  "labelSizeRoad": {
+    "title": "Road label size",
+    "description": "Text size in pixels for road names at high zoom.",
+    "value": 13,
+    "min": 8,
+    "max": 24
+  },
+  "labelSizeShield": {
+    "title": "Shield label size",
+    "description": "Text size in pixels for the road number inside a highway shield.",
+    "value": 10,
+    "min": 6,
+    "max": 18
+  },
+  "labelSizePlaceOther": {
+    "title": "Other place label size",
+    "description": "Text size in pixels for suburbs, quarters, and other minor places at high zoom.",
+    "value": 10,
+    "min": 6,
+    "max": 20
+  },
+  "labelSizeVillage": {
+    "title": "Village label size",
+    "description": "Text size in pixels for village labels at high zoom.",
+    "value": 12,
+    "min": 8,
+    "max": 24
+  },
+  "labelSizeTown": {
+    "title": "Town label size",
+    "description": "Text size in pixels for town labels at high zoom.",
+    "value": 14,
+    "min": 8,
+    "max": 28
+  },
+  "labelSizeState": {
+    "title": "State label size",
+    "description": "Text size in pixels for state labels at high zoom.",
+    "value": 14,
+    "min": 8,
+    "max": 28
+  },
+  "labelSizeCity": {
+    "title": "City label size",
+    "description": "Text size in pixels for city labels at high zoom.",
+    "value": 18,
+    "min": 10,
+    "max": 32
+  },
+  "labelSizeCapital": {
+    "title": "Capital label size",
+    "description": "Text size in pixels for capital city labels at high zoom.",
+    "value": 20,
+    "min": 10,
+    "max": 36
+  },
+  "labelSizeCountry": {
+    "title": "Country label size",
+    "description": "Text size in pixels for country labels at high zoom.",
+    "value": 17,
+    "min": 10,
+    "max": 32
+  },
+  "showLand": {
+    "title": "Land",
+    "description": "Shows the background, land use areas, and land cover.",
+    "value": true
+  },
+  "showWater": {
+    "title": "Water",
+    "description": "Shows water bodies and waterways.",
+    "value": true
+  },
+  "showBuildings": {
+    "title": "Buildings",
+    "description": "Shows building footprints.",
+    "value": true
+  },
+  "showRoads": {
+    "title": "Roads",
+    "description": "Shows roads, paths, piers, and oneway arrows.",
+    "value": true
+  },
+  "showRailways": {
+    "title": "Railways",
+    "description": "Shows railways, rail yards, and cable cars.",
+    "value": true
+  },
+  "showFerries": {
+    "title": "Ferries",
+    "description": "Shows ferry routes.",
+    "value": true
+  },
+  "showAeroways": {
+    "title": "Aeroways",
+    "description": "Shows runways, taxiways, and apron areas.",
+    "value": true
+  },
+  "showBoundaries": {
+    "title": "Boundaries",
+    "description": "Shows country and region boundaries.",
+    "value": true
+  },
+  "showPois": {
+    "title": "Points of interest",
+    "description": "Shows point of interest icons and labels, including transit stops and airports.",
+    "value": true
+  },
+  "showWaterLabels": {
+    "title": "Water labels",
+    "description": "Shows names of water bodies and waterways. Requires water.",
+    "value": true
+  },
+  "showRoadLabels": {
+    "title": "Road labels",
+    "description": "Shows road names and highway shields. Requires roads.",
+    "value": true
+  },
+  "showPlaceLabels": {
+    "title": "Place labels",
+    "description": "Shows names of countries, states, cities, towns, and villages.",
+    "value": true
+  }
+}

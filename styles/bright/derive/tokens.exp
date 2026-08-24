@@ -1,0 +1,171 @@
+// Every base token in the palette, after the three global modifiers. Derivation reads this
+// file and never the raw color parameters, so no derived color can skip a modifier.
+//
+// Hue is an offset in degrees, saturation a multiplier, lightness an offset. A base hue
+// and the offset each sit inside one turn, so the sum wraps with a single subtraction. A
+// multiplier holds a token at saturation 0 neutral through the whole hue range, which an
+// offset cannot do.
+
+core = import "../params/light/core.json"
+detail = import "../params/light/detail.json"
+
+hueOffset = core.paletteHue.value
+saturationScale = core.paletteSaturation.value
+lightnessOffset = core.paletteLightness.value
+
+canvasHue = core.canvas.value.h + hueOffset
+waterHue = core.water.value.h + hueOffset
+vegetationHue = core.vegetation.value.h + hueOffset
+roadHue = core.road.value.h + hueOffset
+motorwayHue = core.motorway.value.h + hueOffset
+buildingHue = core.building.value.h + hueOffset
+boundaryHue = core.boundary.value.h + hueOffset
+labelHue = core.label.value.h + hueOffset
+accentHue = core.accent.value.h + hueOffset
+sandHue = core.sand.value.h + hueOffset
+hospitalHue = detail.hospital.value.h + hueOffset
+schoolHue = detail.school.value.h + hueOffset
+cemeteryHue = detail.cemetery.value.h + hueOffset
+commercialHue = detail.commercial.value.h + hueOffset
+industrialHue = detail.industrial.value.h + hueOffset
+iceHue = detail.ice.value.h + hueOffset
+waterFillHue = detail.waterFill.value.h + hueOffset
+ferryHue = detail.ferry.value.h + hueOffset
+railwayHue = detail.railway.value.h + hueOffset
+cablecarHue = detail.cablecar.value.h + hueOffset
+aerowayCasingHue = detail.aerowayCasing.value.h + hueOffset
+aerowayFillHue = detail.aerowayFill.value.h + hueOffset
+highwayAreaHue = detail.highwayArea.value.h + hueOffset
+transitLabelHue = detail.transitLabel.value.h + hueOffset
+waterwayLabelHue = detail.waterwayLabel.value.h + hueOffset
+
+{
+  "canvas": {
+    "h": when { canvasHue >= 360 -> canvasHue - 360, true -> canvasHue },
+    "s": min(100, core.canvas.value.s * saturationScale),
+    "l": min(100, max(0, core.canvas.value.l + lightnessOffset))
+  },
+  "water": {
+    "h": when { waterHue >= 360 -> waterHue - 360, true -> waterHue },
+    "s": min(100, core.water.value.s * saturationScale),
+    "l": min(100, max(0, core.water.value.l + lightnessOffset))
+  },
+  "vegetation": {
+    "h": when { vegetationHue >= 360 -> vegetationHue - 360, true -> vegetationHue },
+    "s": min(100, core.vegetation.value.s * saturationScale),
+    "l": min(100, max(0, core.vegetation.value.l + lightnessOffset))
+  },
+  "road": {
+    "h": when { roadHue >= 360 -> roadHue - 360, true -> roadHue },
+    "s": min(100, core.road.value.s * saturationScale),
+    "l": min(100, max(0, core.road.value.l + lightnessOffset))
+  },
+  "motorway": {
+    "h": when { motorwayHue >= 360 -> motorwayHue - 360, true -> motorwayHue },
+    "s": min(100, core.motorway.value.s * saturationScale),
+    "l": min(100, max(0, core.motorway.value.l + lightnessOffset))
+  },
+  "building": {
+    "h": when { buildingHue >= 360 -> buildingHue - 360, true -> buildingHue },
+    "s": min(100, core.building.value.s * saturationScale),
+    "l": min(100, max(0, core.building.value.l + lightnessOffset))
+  },
+  "boundary": {
+    "h": when { boundaryHue >= 360 -> boundaryHue - 360, true -> boundaryHue },
+    "s": min(100, core.boundary.value.s * saturationScale),
+    "l": min(100, max(0, core.boundary.value.l + lightnessOffset))
+  },
+  "label": {
+    "h": when { labelHue >= 360 -> labelHue - 360, true -> labelHue },
+    "s": min(100, core.label.value.s * saturationScale),
+    "l": min(100, max(0, core.label.value.l + lightnessOffset))
+  },
+  "accent": {
+    "h": when { accentHue >= 360 -> accentHue - 360, true -> accentHue },
+    "s": min(100, core.accent.value.s * saturationScale),
+    "l": min(100, max(0, core.accent.value.l + lightnessOffset))
+  },
+  "sand": {
+    "h": when { sandHue >= 360 -> sandHue - 360, true -> sandHue },
+    "s": min(100, core.sand.value.s * saturationScale),
+    "l": min(100, max(0, core.sand.value.l + lightnessOffset))
+  },
+  "hospital": {
+    "h": when { hospitalHue >= 360 -> hospitalHue - 360, true -> hospitalHue },
+    "s": min(100, detail.hospital.value.s * saturationScale),
+    "l": min(100, max(0, detail.hospital.value.l + lightnessOffset))
+  },
+  "school": {
+    "h": when { schoolHue >= 360 -> schoolHue - 360, true -> schoolHue },
+    "s": min(100, detail.school.value.s * saturationScale),
+    "l": min(100, max(0, detail.school.value.l + lightnessOffset))
+  },
+  "cemetery": {
+    "h": when { cemeteryHue >= 360 -> cemeteryHue - 360, true -> cemeteryHue },
+    "s": min(100, detail.cemetery.value.s * saturationScale),
+    "l": min(100, max(0, detail.cemetery.value.l + lightnessOffset))
+  },
+  "commercial": {
+    "h": when { commercialHue >= 360 -> commercialHue - 360, true -> commercialHue },
+    "s": min(100, detail.commercial.value.s * saturationScale),
+    "l": min(100, max(0, detail.commercial.value.l + lightnessOffset)),
+    "a": detail.commercial.value.a
+  },
+  "industrial": {
+    "h": when { industrialHue >= 360 -> industrialHue - 360, true -> industrialHue },
+    "s": min(100, detail.industrial.value.s * saturationScale),
+    "l": min(100, max(0, detail.industrial.value.l + lightnessOffset)),
+    "a": detail.industrial.value.a
+  },
+  "ice": {
+    "h": when { iceHue >= 360 -> iceHue - 360, true -> iceHue },
+    "s": min(100, detail.ice.value.s * saturationScale),
+    "l": min(100, max(0, detail.ice.value.l + lightnessOffset))
+  },
+  "waterFill": {
+    "h": when { waterFillHue >= 360 -> waterFillHue - 360, true -> waterFillHue },
+    "s": min(100, detail.waterFill.value.s * saturationScale),
+    "l": min(100, max(0, detail.waterFill.value.l + lightnessOffset))
+  },
+  "ferry": {
+    "h": when { ferryHue >= 360 -> ferryHue - 360, true -> ferryHue },
+    "s": min(100, detail.ferry.value.s * saturationScale),
+    "l": min(100, max(0, detail.ferry.value.l + lightnessOffset))
+  },
+  "railway": {
+    "h": when { railwayHue >= 360 -> railwayHue - 360, true -> railwayHue },
+    "s": min(100, detail.railway.value.s * saturationScale),
+    "l": min(100, max(0, detail.railway.value.l + lightnessOffset))
+  },
+  "cablecar": {
+    "h": when { cablecarHue >= 360 -> cablecarHue - 360, true -> cablecarHue },
+    "s": min(100, detail.cablecar.value.s * saturationScale),
+    "l": min(100, max(0, detail.cablecar.value.l + lightnessOffset))
+  },
+  "aerowayCasing": {
+    "h": when { aerowayCasingHue >= 360 -> aerowayCasingHue - 360, true -> aerowayCasingHue },
+    "s": min(100, detail.aerowayCasing.value.s * saturationScale),
+    "l": min(100, max(0, detail.aerowayCasing.value.l + lightnessOffset))
+  },
+  "aerowayFill": {
+    "h": when { aerowayFillHue >= 360 -> aerowayFillHue - 360, true -> aerowayFillHue },
+    "s": min(100, detail.aerowayFill.value.s * saturationScale),
+    "l": min(100, max(0, detail.aerowayFill.value.l + lightnessOffset))
+  },
+  "highwayArea": {
+    "h": when { highwayAreaHue >= 360 -> highwayAreaHue - 360, true -> highwayAreaHue },
+    "s": min(100, detail.highwayArea.value.s * saturationScale),
+    "l": min(100, max(0, detail.highwayArea.value.l + lightnessOffset)),
+    "a": detail.highwayArea.value.a
+  },
+  "transitLabel": {
+    "h": when { transitLabelHue >= 360 -> transitLabelHue - 360, true -> transitLabelHue },
+    "s": min(100, detail.transitLabel.value.s * saturationScale),
+    "l": min(100, max(0, detail.transitLabel.value.l + lightnessOffset))
+  },
+  "waterwayLabel": {
+    "h": when { waterwayLabelHue >= 360 -> waterwayLabelHue - 360, true -> waterwayLabelHue },
+    "s": min(100, detail.waterwayLabel.value.s * saturationScale),
+    "l": min(100, max(0, detail.waterwayLabel.value.l + lightnessOffset))
+  }
+}

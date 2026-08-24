@@ -1,0 +1,48 @@
+// Building footprints and their extruded tops.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+building = {
+  "type": "fill",
+  "source": "openmaptiles",
+  "source-layer": "building"
+}
+
+footprints = [
+  {
+    ...building,
+    "id": "building",
+    "paint": {
+      "fill-antialias": true,
+      "fill-color": interpolate(
+        ["linear"],
+        zoom(),
+        15.5, colors.building,
+        16, colors.buildingOutline
+      )
+    }
+  },
+  {
+    ...building,
+    "id": "building-top",
+    "paint": {
+      "fill-color": colors.building,
+      "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 16, 1],
+      "fill-outline-color": colors.buildingOutline,
+      "fill-translate": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        14, ["literal", [0, 0]],
+        16, ["literal", [-2, -2]]
+      ]
+    }
+  }
+]
+
+visible = flags.buildings
+
+{
+  "footprints": when { visible -> footprints, true -> [] }
+}

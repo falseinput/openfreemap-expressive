@@ -1,0 +1,246 @@
+// Names of countries, states, cities, towns, villages, and minor places.
+
+colors = import "../derive/colors.exp"
+sizes = import "../derive/sizes.exp"
+flags = import "../derive/visibility.exp"
+text = import "../derive/label-text.json"
+
+place = {
+  "type": "symbol",
+  "source": "openmaptiles",
+  "source-layer": "place",
+  "layout": {
+    "text-field": text.stacked,
+    "text-font": ["Noto Sans Italic"],
+    "text-max-width": 9
+  },
+  "paint": {
+    "text-color": colors.label,
+    "text-halo-blur": 1,
+    "text-halo-color": colors.halo,
+    "text-halo-width": colors.haloWidth
+  }
+}
+
+settlement = {
+  ...place,
+  "layout": {
+    "icon-allow-overlap": true,
+    "icon-optional": false,
+    "text-anchor": "bottom",
+    "text-field": text.stacked,
+    "text-font": ["Noto Sans Regular"],
+    "text-max-width": 8
+  },
+  "paint": {
+    ...place.paint,
+    "text-color": colors.labelStrong,
+    "text-halo-color": colors.haloStrong,
+    "text-halo-width": colors.haloWidthStrong
+  }
+}
+
+country = {
+  ...place,
+  "maxzoom": 9,
+  "layout": {
+    "text-field": text.stacked,
+    "text-font": ["Noto Sans Bold"],
+    "text-max-width": 6.25
+  },
+  "paint": {
+    ...place.paint,
+    "text-color": colors.labelStrong,
+    "text-halo-color": colors.haloStrong,
+    "text-halo-width": colors.haloWidthStrong
+  }
+}
+
+dotToZoom10 = ["step", ["zoom"], "circle_11_black", 10, ""]
+dotToZoom9 = ["step", ["zoom"], "circle_11_black", 9, ""]
+
+names = [
+  {
+    ...place,
+    "id": "label_other",
+    "minzoom": 8,
+    "filter": [
+      "match",
+      ["get", "class"],
+      ["city", "continent", "country", "state", "town", "village"],
+      false,
+      true
+    ],
+    "layout": {
+      ...place.layout,
+      "text-letter-spacing": 0.1,
+      "text-size": interpolate(
+        ["linear"],
+        zoom(),
+        8, sizes.placeOtherLow,
+        12, sizes.placeOther
+      ),
+      "text-transform": "uppercase"
+    }
+  },
+  {
+    ...settlement,
+    "id": "label_village",
+    "minzoom": 9,
+    "filter": ["==", ["get", "class"], "village"],
+    "layout": {
+      ...settlement.layout,
+      "icon-image": dotToZoom10,
+      "icon-size": 0.2,
+      "text-size": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        7, sizes.villageLow,
+        11, sizes.village
+      )
+    }
+  },
+  {
+    ...settlement,
+    "id": "label_town",
+    "minzoom": 6,
+    "filter": ["==", ["get", "class"], "town"],
+    "layout": {
+      ...settlement.layout,
+      "icon-image": dotToZoom10,
+      "icon-size": 0.2,
+      "text-size": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        7, sizes.townLow,
+        11, sizes.town
+      )
+    }
+  },
+  {
+    ...place,
+    "id": "label_state",
+    "minzoom": 5,
+    "maxzoom": 8,
+    "filter": ["==", ["get", "class"], "state"],
+    "layout": {
+      ...place.layout,
+      "text-letter-spacing": 0.2,
+      "text-size": interpolate(
+        ["linear"],
+        zoom(),
+        5, sizes.stateLow,
+        8, sizes.state
+      ),
+      "text-transform": "uppercase"
+    }
+  },
+  {
+    ...settlement,
+    "id": "label_city",
+    "minzoom": 3,
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "city"],
+      ["!=", ["get", "capital"], 2]
+    ],
+    "layout": {
+      ...settlement.layout,
+      "icon-image": dotToZoom9,
+      "icon-size": 0.4,
+      "text-offset": [0, -0.1],
+      "text-size": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        4, sizes.cityLow,
+        7, sizes.cityMid,
+        11, sizes.city
+      )
+    }
+  },
+  {
+    ...settlement,
+    "id": "label_city_capital",
+    "minzoom": 3,
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "city"],
+      ["==", ["get", "capital"], 2]
+    ],
+    "layout": {
+      ...settlement.layout,
+      "icon-image": dotToZoom9,
+      "icon-size": 0.5,
+      "text-font": ["Noto Sans Bold"],
+      "text-offset": [0, -0.2],
+      "text-size": interpolate(
+        ["exponential", 1.2],
+        zoom(),
+        4, sizes.capitalLow,
+        7, sizes.capitalMid,
+        11, sizes.capital
+      )
+    }
+  },
+  {
+    ...country,
+    "id": "label_country_3",
+    "minzoom": 2,
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "country"],
+      [">=", ["get", "rank"], 3]
+    ],
+    "layout": {
+      ...country.layout,
+      "text-size": interpolate(
+        ["linear"],
+        zoom(),
+        3, sizes.countryLow,
+        7, sizes.country
+      )
+    }
+  },
+  {
+    ...country,
+    "id": "label_country_2",
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "country"],
+      ["==", ["get", "rank"], 2]
+    ],
+    "layout": {
+      ...country.layout,
+      "text-size": interpolate(
+        ["linear"],
+        zoom(),
+        2, sizes.countryLow,
+        5, sizes.country
+      )
+    }
+  },
+  {
+    ...country,
+    "id": "label_country_1",
+    "filter": [
+      "all",
+      ["==", ["get", "class"], "country"],
+      ["==", ["get", "rank"], 1]
+    ],
+    "layout": {
+      ...country.layout,
+      "text-size": interpolate(
+        ["linear"],
+        zoom(),
+        1, sizes.countryLow,
+        4, sizes.country
+      )
+    }
+  }
+]
+
+visible = flags.placeLabels
+
+{
+  "names": when { visible -> names, true -> [] }
+}

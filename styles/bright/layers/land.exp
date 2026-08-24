@@ -1,0 +1,161 @@
+// Background, land use, and land cover.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+landcover = {
+  "type": "fill",
+  "source": "openmaptiles",
+  "source-layer": "landcover"
+}
+
+landuse = {
+  "type": "fill",
+  "source": "openmaptiles",
+  "source-layer": "landuse"
+}
+
+park = {
+  "type": "fill",
+  "source": "openmaptiles",
+  "source-layer": "park"
+}
+
+iceOpacity = ["interpolate", ["linear"], ["zoom"], 0, 0.9, 10, 0.3]
+
+base = [
+  {
+    "id": "background",
+    "type": "background",
+    "paint": { "background-color": colors.canvas }
+  },
+  {
+    ...landcover,
+    "id": "landcover-glacier",
+    "filter": ["==", ["get", "subclass"], "glacier"],
+    "paint": { "fill-color": colors.ice, "fill-opacity": iceOpacity }
+  },
+  {
+    ...landuse,
+    "id": "landuse-residential",
+    "filter": ["match", ["get", "class"], ["neighbourhood", "residential"], true, false],
+    "paint": {
+      "fill-color": interpolate(
+        ["linear"],
+        zoom(),
+        12, colors.landTint,
+        16, colors.landTintFaint
+      )
+    }
+  },
+  {
+    ...landuse,
+    "id": "landuse-suburb",
+    "maxzoom": 10,
+    "filter": ["==", ["get", "class"], "suburb"],
+    "paint": {
+      "fill-color": interpolate(
+        ["linear"],
+        zoom(),
+        8, colors.landTint,
+        10, colors.landTintClear
+      )
+    }
+  },
+  {
+    ...landuse,
+    "id": "landuse-commercial",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
+      ["==", ["get", "class"], "commercial"]
+    ],
+    "paint": { "fill-color": colors.commercial }
+  },
+  {
+    ...landuse,
+    "id": "landuse-industrial",
+    "filter": [
+      "all",
+      ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
+      ["match", ["get", "class"], ["dam", "garages", "industrial"], true, false]
+    ],
+    "paint": { "fill-color": colors.industrial }
+  },
+  {
+    ...landuse,
+    "id": "landuse-cemetery",
+    "filter": ["==", ["get", "class"], "cemetery"],
+    "paint": { "fill-color": colors.cemetery }
+  },
+  {
+    ...landuse,
+    "id": "landuse-hospital",
+    "filter": ["==", ["get", "class"], "hospital"],
+    "paint": { "fill-color": colors.hospital }
+  },
+  {
+    ...landuse,
+    "id": "landuse-school",
+    "filter": ["==", ["get", "class"], "school"],
+    "paint": { "fill-color": colors.school }
+  }
+]
+
+vegetation = [
+  {
+    ...park,
+    "id": "park",
+    "filter": ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
+    "paint": {
+      "fill-color": colors.vegetation,
+      "fill-opacity": ["interpolate", ["exponential", 1.8], ["zoom"], 9, 0.5, 12, 0.2]
+    }
+  },
+  {
+    ...landcover,
+    "id": "landcover-wood",
+    "filter": ["==", ["get", "class"], "wood"],
+    "paint": {
+      "fill-antialias": ["step", ["zoom"], false, 9, true],
+      "fill-color": colors.wood,
+      "fill-opacity": 0.1,
+      "fill-outline-color": colors.woodOutline
+    }
+  },
+  {
+    ...landcover,
+    "id": "landcover-grass",
+    "filter": ["==", ["get", "class"], "grass"],
+    "paint": { "fill-color": colors.vegetation, "fill-opacity": 1 }
+  },
+  {
+    ...park,
+    "id": "landcover-grass-park",
+    "filter": ["==", ["get", "class"], "public_park"],
+    "paint": { "fill-color": colors.vegetation, "fill-opacity": 0.8 }
+  }
+]
+
+overWater = [
+  {
+    ...landcover,
+    "id": "landcover-ice-shelf",
+    "filter": ["==", ["get", "subclass"], "ice_shelf"],
+    "paint": { "fill-color": colors.ice, "fill-opacity": iceOpacity }
+  },
+  {
+    ...landcover,
+    "id": "landcover-sand",
+    "filter": ["==", ["get", "class"], "sand"],
+    "paint": { "fill-color": colors.sand, "fill-opacity": 1 }
+  }
+]
+
+visible = flags.land
+
+{
+  "base": when { visible -> base, true -> [] },
+  "vegetation": when { visible -> vegetation, true -> [] },
+  "overWater": when { visible -> overWater, true -> [] }
+}

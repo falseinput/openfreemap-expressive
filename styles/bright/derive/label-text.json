@@ -1,0 +1,14 @@
+{
+  "stacked": [
+    "case",
+    ["has", "name:nonlatin"],
+    ["concat", ["get", "name:latin"], "\n", ["get", "name:nonlatin"]],
+    ["coalesce", ["get", "name_en"], ["get", "name"]]
+  ],
+  "inline": [
+    "case",
+    ["has", "name:nonlatin"],
+    ["concat", ["get", "name:latin"], " ", ["get", "name:nonlatin"]],
+    ["coalesce", ["get", "name_en"], ["get", "name"]]
+  ]
+}

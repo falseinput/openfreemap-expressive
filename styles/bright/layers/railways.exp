@@ -1,0 +1,142 @@
+// Rail yards, railways at three elevations, and cable cars. Each railway draws a solid line
+// and a hatching line on top.
+
+colors = import "../derive/colors.exp"
+flags = import "../derive/visibility.exp"
+
+rail = {
+  "type": "line",
+  "source": "openmaptiles",
+  "source-layer": "transportation"
+}
+
+railWidth = ["interpolate", ["exponential", 1.4], ["zoom"], 14, 0.4, 15, 0.75, 20, 2]
+serviceRailWidth = ["interpolate", ["exponential", 1.4], ["zoom"], 14, 0.4, 20, 1]
+hatchingWidth = ["interpolate", ["exponential", 1.4], ["zoom"], 14.5, 0, 15, 3, 20, 8]
+serviceHatchingWidth = ["interpolate", ["exponential", 1.4], ["zoom"], 14.5, 0, 15, 2, 20, 6]
+hatchingDash = [0.2, 8]
+
+railway = { ...rail, "paint": { "line-color": colors.railway, "line-width": railWidth } }
+railwayHatching = {
+  ...rail,
+  "paint": {
+    "line-color": colors.railway,
+    "line-dasharray": hatchingDash,
+    "line-width": hatchingWidth
+  }
+}
+serviceRailway = {
+  ...rail,
+  "paint": { "line-color": colors.railwayMinor, "line-width": serviceRailWidth }
+}
+serviceRailwayHatching = {
+  ...rail,
+  "paint": {
+    "line-color": colors.railwayMinorHatching,
+    "line-dasharray": hatchingDash,
+    "line-width": serviceHatchingWidth
+  }
+}
+
+cablecarLine = {
+  ...rail,
+  "minzoom": 13,
+  "filter": ["==", ["get", "subclass"], "cable_car"],
+  "layout": { "line-cap": "round" }
+}
+
+transitFilter = [
+  "all",
+  ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+  ["==", ["get", "class"], "transit"],
+  ["match", ["get", "brunnel"], ["tunnel"], false, true]
+]
+
+serviceRailFilter = [
+  "all",
+  ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+  ["==", ["get", "class"], "rail"],
+  ["has", "service"]
+]
+
+railFilter = [
+  "all",
+  ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+  ["!", ["has", "service"]],
+  ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+  ["==", ["get", "class"], "rail"]
+]
+
+bridgeRailFilter = [
+  "all",
+  ["==", ["get", "brunnel"], "bridge"],
+  ["==", ["get", "class"], "rail"]
+]
+
+yards = [
+  {
+    "id": "landuse-railway",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "landuse",
+    "filter": ["==", ["get", "class"], "railway"],
+    "paint": { "fill-color": colors.landTint }
+  }
+]
+
+tunnels = [
+  {
+    ...railway,
+    "id": "tunnel-railway",
+    "filter": [
+      "all",
+      ["==", ["get", "brunnel"], "tunnel"],
+      ["==", ["get", "class"], "rail"]
+    ],
+    "paint": { ...railway.paint, "line-dasharray": [2, 2] }
+  }
+]
+
+surface = [
+  { ...serviceRailway, "id": "railway-transit", "filter": transitFilter },
+  { ...serviceRailwayHatching, "id": "railway-transit-hatching", "filter": transitFilter },
+  { ...serviceRailway, "id": "railway-service", "filter": serviceRailFilter },
+  { ...serviceRailwayHatching, "id": "railway-service-hatching", "filter": serviceRailFilter },
+  { ...railway, "id": "railway", "filter": railFilter },
+  { ...railwayHatching, "id": "railway-hatching", "filter": railFilter }
+]
+
+bridges = [
+  { ...railway, "id": "bridge-railway", "filter": bridgeRailFilter },
+  { ...railwayHatching, "id": "bridge-railway-hatching", "filter": bridgeRailFilter }
+]
+
+cablecars = [
+  {
+    ...cablecarLine,
+    "id": "cablecar",
+    "paint": {
+      "line-color": colors.cablecar,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 11, 1, 19, 2.5]
+    }
+  },
+  {
+    ...cablecarLine,
+    "id": "cablecar-dash",
+    "paint": {
+      "line-color": colors.cablecar,
+      "line-dasharray": [2, 3],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 11, 3, 19, 5.5]
+    }
+  }
+]
+
+visible = flags.railways
+
+{
+  "yards": when { visible -> yards, true -> [] },
+  "tunnels": when { visible -> tunnels, true -> [] },
+  "surface": when { visible -> surface, true -> [] },
+  "bridges": when { visible -> bridges, true -> [] },
+  "cablecars": when { visible -> cablecars, true -> [] }
+}

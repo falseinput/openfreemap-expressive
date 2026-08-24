@@ -1,0 +1,28 @@
+// Module visibility. A hidden module contributes no layers. Label modules also require
+// their parent module.
+
+detail = import "../params/light/detail.json"
+
+water = detail.showWater.value
+roads = detail.showRoads.value
+
+{
+  "land": detail.showLand.value,
+  "water": water,
+  "buildings": detail.showBuildings.value,
+  "roads": roads,
+  "railways": detail.showRailways.value,
+  "ferries": detail.showFerries.value,
+  "aeroways": detail.showAeroways.value,
+  "boundaries": detail.showBoundaries.value,
+  "pois": detail.showPois.value,
+  "waterLabels": when {
+    water -> detail.showWaterLabels.value,
+    true -> false
+  },
+  "roadLabels": when {
+    roads -> detail.showRoadLabels.value,
+    true -> false
+  },
+  "placeLabels": detail.showPlaceLabels.value
+}

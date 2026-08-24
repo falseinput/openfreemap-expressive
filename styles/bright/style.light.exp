@@ -1,0 +1,57 @@
+// Light variant of the Bright style. Modules own their layers, this file owns the stacking.
+
+land = import "./layers/land.exp"
+water = import "./layers/water.exp"
+buildings = import "./layers/buildings.exp"
+roads = import "./layers/roads.exp"
+railways = import "./layers/railways.exp"
+ferries = import "./layers/ferries.exp"
+aeroways = import "./layers/aeroways.exp"
+boundaries = import "./layers/boundaries.exp"
+pois = import "./layers/pois.exp"
+labelsWater = import "./layers/labels-water.exp"
+labelsRoads = import "./layers/labels-roads.exp"
+labelsPlaces = import "./layers/labels-places.exp"
+
+{
+  "version": 8,
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "https://tiles.openfreemap.org/planet"
+    }
+  },
+  "sprite": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm",
+  "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  "layers": [
+    ...land.base,
+    ...railways.yards,
+    ...land.vegetation,
+    ...water.waterways,
+    ...water.bodies,
+    ...land.overWater,
+    ...buildings.footprints,
+
+    ...roads.tunnels,
+    ...railways.tunnels,
+    ...ferries.routes,
+    ...aeroways.pavement,
+
+    ...roads.surface,
+    ...railways.surface,
+
+    ...roads.bridges,
+    ...railways.bridges,
+    ...railways.cablecars,
+
+    ...boundaries.admin,
+    ...roads.oneway,
+
+    ...labelsWater.names,
+    ...pois.points,
+    ...labelsRoads.names,
+    ...labelsRoads.shields,
+    ...pois.airports,
+    ...labelsPlaces.names
+  ]
+}
