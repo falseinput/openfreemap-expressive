@@ -7,6 +7,6 @@
     "build": "expc -i styles/bright/style.light.exp -o dist/style.light.json"
   },
   "devDependencies": {
-    "@falseinput/expressive": "^0.3.0"
+    "@falseinput/expressive": "^0.4.2"
   }
 }
